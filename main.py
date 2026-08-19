@@ -24,6 +24,11 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(message)s",
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -31,8 +36,13 @@ logger = logging.getLogger(__name__)
 # Configuration
 # ---------------------------------------------------------------------------
 
+# Fast calculations should return quickly.
 FAST_TIMEOUT_SECONDS = 10
-PLOT_TIMEOUT_SECONDS = 60
+
+# Temporary diagnostic timeout for graphics.
+# We will increase this later only if necessary.
+PLOT_TIMEOUT_SECONDS = 20
+
 MAX_CODE_LENGTH = 100_000
 
 TMP_DIR = Path("/tmp")
@@ -60,7 +70,7 @@ app.add_middleware(
 
 
 # ---------------------------------------------------------------------------
-# Models
+# Request / response models
 # ---------------------------------------------------------------------------
 
 class ExecuteRequest(BaseModel):
@@ -88,7 +98,7 @@ class PlotJobResponse(BaseModel):
 # In-memory plot jobs
 # ---------------------------------------------------------------------------
 
-# This is intentionally simple for the presentation/demo.
+# Fine for a single-user presentation/demo.
 plot_jobs: dict[str, dict] = {}
 
 
@@ -182,8 +192,34 @@ async def health_check() -> dict[str, str]:
 
 
 # ---------------------------------------------------------------------------
-# File / process helpers
+# Helpers
 # ---------------------------------------------------------------------------
+
+def _ensure_scilab_home() -> None:
+    SCILAB_HOME.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+
+def _find_binary(name: str) -> str:
+    """Find an executable in PATH."""
+
+    path = shutil.which(name)
+
+    if not path:
+        raise RuntimeError(
+            f"Scilab binary '{name}' was not found."
+        )
+
+    logger.info(
+        "Found executable %s at %s",
+        name,
+        path,
+    )
+
+    return path
+
 
 def _write_script(
     code: str,
@@ -198,25 +234,10 @@ def _write_script(
         encoding="utf-8",
     )
 
-    return path
-
-
-def _ensure_scilab_home() -> None:
-    SCILAB_HOME.mkdir(
-        parents=True,
-        exist_ok=True,
+    logger.info(
+        "Created Scilab script: %s",
+        path,
     )
-
-
-def _find_binary(name: str) -> str:
-    """Find a Scilab executable."""
-
-    path = shutil.which(name)
-
-    if not path:
-        raise RuntimeError(
-            f"Scilab binary '{name}' was not found."
-        )
 
     return path
 
@@ -283,6 +304,11 @@ def _run_process(
         preexec_fn=os.setsid,
     )
 
+    logger.info(
+        "Started process PID=%s",
+        process.pid,
+    )
+
     try:
         stdout, stderr = process.communicate(
             timeout=timeout,
@@ -298,6 +324,11 @@ def _run_process(
 
         raise
 
+    logger.info(
+        "Process finished with return code %s",
+        process.returncode,
+    )
+
     return subprocess.CompletedProcess(
         args=command,
         returncode=process.returncode,
@@ -307,19 +338,19 @@ def _run_process(
 
 
 # ---------------------------------------------------------------------------
-# Fast Scilab execution
+# Fast text execution
 # ---------------------------------------------------------------------------
 
 def _run_fast_execution(
     code: str,
     execution_id: str,
 ) -> tuple[str, str, bool]:
+
     """
-    Execute code using scilab-cli.
+    Execute Scilab using scilab-cli.
 
     Graphics commands are removed because scilab-cli does not
-    provide graphics. The original code is separately executed
-    by the background plot worker.
+    provide graphics.
     """
 
     fast_code = _remove_graphics_lines(code)
@@ -372,7 +403,7 @@ def _run_fast_execution(
 
 
 # ---------------------------------------------------------------------------
-# Plot script
+# Background plot script
 # ---------------------------------------------------------------------------
 
 def _build_plot_wrapper(
@@ -381,7 +412,9 @@ def _build_plot_wrapper(
 ) -> tuple[Path, Path]:
     """Build the graphics-enabled Scilab script."""
 
-    plot_path = TMP_DIR / f"{execution_id}_plot.png"
+    plot_path = (
+        TMP_DIR / f"{execution_id}_plot.png"
+    )
 
     wrapped_code = f"""
 // Scilab Cloud background graphics execution
@@ -453,6 +486,23 @@ def _generate_plot(
             "-quit",
         ]
 
+        # Diagnostic logging so we know exactly where graphics execution
+        # gets stuck.
+        logger.info(
+            "STARTING GRAPHICS PROCESS: %s",
+            " ".join(command),
+        )
+
+        logger.info(
+            "Graphics script: %s",
+            plot_script,
+        )
+
+        logger.info(
+            "Expected plot path: %s",
+            plot_path,
+        )
+
         try:
             completed = _run_process(
                 command,
@@ -469,7 +519,25 @@ def _generate_plot(
                 ),
             }
 
+            logger.error(
+                "Plot job %s timed out.",
+                job_id,
+            )
+
             return
+
+        # Always log graphics stdout/stderr for diagnostics.
+        if completed.stdout:
+            logger.info(
+                "Graphics stdout:\n%s",
+                completed.stdout,
+            )
+
+        if completed.stderr:
+            logger.error(
+                "Graphics stderr:\n%s",
+                completed.stderr,
+            )
 
         if completed.returncode != 0:
             plot_jobs[job_id] = {
@@ -480,6 +548,12 @@ def _generate_plot(
                 ),
             }
 
+            logger.error(
+                "Plot job %s failed with return code %s.",
+                job_id,
+                completed.returncode,
+            )
+
             return
 
         if not plot_path.is_file():
@@ -488,6 +562,12 @@ def _generate_plot(
                 "plot_base64": None,
                 "error": "No plot image was generated.",
             }
+
+            logger.error(
+                "Plot job %s exited successfully but "
+                "no PNG was created.",
+                job_id,
+            )
 
             return
 
@@ -502,7 +582,7 @@ def _generate_plot(
         }
 
         logger.info(
-            "Plot job %s completed.",
+            "Plot job %s completed successfully.",
             job_id,
         )
 
@@ -555,6 +635,13 @@ async def execute_scilab(
         request.code,
     )
 
+    logger.info(
+        "New execution %s. Graphics detected: %s",
+        execution_id,
+        has_graphics,
+    )
+
+    # Fast text execution.
     output, error, success = _run_fast_execution(
         request.code,
         execution_id,
@@ -562,6 +649,7 @@ async def execute_scilab(
 
     plot_job_id: Optional[str] = None
 
+    # Start plot generation separately.
     if has_graphics:
         plot_job_id = str(uuid.uuid4())
 
@@ -571,14 +659,17 @@ async def execute_scilab(
             "error": None,
         }
 
+        logger.info(
+            "Queueing background plot job %s",
+            plot_job_id,
+        )
+
         background_tasks.add_task(
             _generate_plot,
             plot_job_id,
             request.code,
         )
 
-    # Graphics errors from the fast CLI are intentionally
-    # removed because graphics are handled separately.
     return ExecuteResponse(
         success=success,
         output=output,
