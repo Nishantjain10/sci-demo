@@ -339,7 +339,7 @@ def _build_plot_wrapper(
         TMP_DIR / f"{execution_id}_plot.png"
     )
 
-    wrapped_code = f"""
+   wrapped_code = f"""
 // Scilab Cloud background graphics execution
 
 __PLOT_FILE__ = "{plot_path.as_posix()}";
@@ -353,10 +353,7 @@ try
     fig_ids = winsid();
 
     if ~isempty(fig_ids) then
-        xs2png(
-            max(fig_ids),
-            __PLOT_FILE__
-        );
+        xs2png(max(fig_ids), __PLOT_FILE__);
     end
 catch
     // No plot was generated.
@@ -427,10 +424,15 @@ def _generate_plot(
             }
             return
 
-        if (
-            completed.returncode != 0
-            and not plot_path.is_file()
-        ):
+        if completed.returncode != 0:
+    plot_jobs[job_id] = {
+        "status": "failed",
+        "plot_base64": None,
+        "error": completed.stderr or (
+            "Scilab plot generation failed."
+        ),
+    }
+    return
             plot_jobs[job_id] = {
                 "status": "failed",
                 "plot_base64": None,
