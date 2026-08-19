@@ -102,6 +102,8 @@ def _build_command(sce_path: Path) -> list[str]:
     scilab_bin,
     "-nw",
     "-nb",
+    "-nouserstartup",
+    "-noatomsautoload",
     "-f",
     str(sce_path),
     "-quit",
