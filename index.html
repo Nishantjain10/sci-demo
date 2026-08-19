@@ -3,32 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>Scilab Cloud</title>
+
   <style>
     :root {
-      --bg: #0b0d11;
-      --panel: #11141a;
-      --panel-2: #151922;
-      --border: #252b36;
-      --text: #eef1f6;
-      --muted: #8d96a6;
-      --accent: #7c5cff;
-      --accent-hover: #9177ff;
-      --green: #42d392;
-      --red: #ff6b81;
-      --editor: #0d1015;
+      --bg: #f5f6f8;
+      --surface: #ffffff;
+      --surface-soft: #f8f9fb;
+      --surface-code: #fbfcfe;
+
+      --border: #dfe3e8;
+      --border-strong: #cbd1d9;
+
+      --text: #171a1f;
+      --text-secondary: #4d5561;
+      --muted: #737c88;
+
+      --accent: #6d4aff;
+      --accent-hover: #5d3bea;
+
+      --green: #18a56b;
+      --green-soft: #e8f8f1;
+
+      --red: #d9304f;
+      --red-soft: #fff0f3;
+
+      --code: #20242b;
+      --line-number: #a1a8b2;
+
+      --shadow:
+        0 1px 2px rgba(0, 0, 0, 0.04),
+        0 8px 30px rgba(25, 35, 50, 0.06);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
 
     body {
       margin: 0;
       min-height: 100vh;
+
       background:
-        radial-gradient(circle at 85% -10%, rgba(124, 92, 255, .16), transparent 35%),
+        radial-gradient(
+          circle at 85% -10%,
+          rgba(109, 74, 255, 0.08),
+          transparent 30%
+        ),
         var(--bg);
+
       color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    button,
+    textarea {
+      font-family: inherit;
     }
 
     .app {
@@ -37,18 +81,28 @@
       flex-direction: column;
     }
 
+    /* --------------------------------------------------
+       HEADER
+    -------------------------------------------------- */
+
     header {
-      height: 68px;
+      height: 70px;
+
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 28px;
+
+      padding: 0 32px;
+
+      background: rgba(255, 255, 255, 0.92);
+
       border-bottom: 1px solid var(--border);
-      background: rgba(11, 13, 17, .86);
-      backdrop-filter: blur(14px);
+
       position: sticky;
       top: 0;
-      z-index: 10;
+      z-index: 20;
+
+      backdrop-filter: blur(14px);
     }
 
     .brand {
@@ -58,47 +112,83 @@
     }
 
     .logo {
-      width: 34px;
-      height: 34px;
+      width: 38px;
+      height: 38px;
+
       display: grid;
       place-items: center;
-      border-radius: 9px;
-      background: linear-gradient(135deg, #7c5cff, #4f8cff);
+
+      border-radius: 10px;
+
+      background:
+        linear-gradient(
+          135deg,
+          #7558ff,
+          #6845ee
+        );
+
+      color: white;
+
+      font-size: 18px;
       font-weight: 800;
-      box-shadow: 0 8px 30px rgba(124, 92, 255, .25);
+
+      box-shadow:
+        0 5px 18px rgba(109, 74, 255, 0.25);
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
     }
 
     .brand h1 {
       margin: 0;
-      font-size: 17px;
-      letter-spacing: -.02em;
+
+      font-size: 18px;
+      font-weight: 750;
+      letter-spacing: -0.025em;
     }
 
-    .brand span {
+    .brand-subtitle {
       color: var(--muted);
-      font-size: 12px;
-      margin-left: 4px;
+
+      font-size: 13px;
+      font-weight: 500;
     }
 
     .status {
       display: flex;
       align-items: center;
       gap: 8px;
-      color: var(--muted);
+
+      color: var(--text-secondary);
+
       font-size: 13px;
+      font-weight: 500;
     }
 
     .dot {
       width: 8px;
       height: 8px;
+
       border-radius: 50%;
+
       background: var(--green);
-      box-shadow: 0 0 12px rgba(66, 211, 146, .7);
+
+      box-shadow:
+        0 0 0 4px var(--green-soft);
     }
 
+    /* --------------------------------------------------
+       MAIN
+    -------------------------------------------------- */
+
     main {
-      width: min(1400px, calc(100% - 40px));
-      margin: 24px auto 36px;
+      width: min(1500px, calc(100% - 48px));
+
+      margin: 30px auto 40px;
+
       flex: 1;
     }
 
@@ -106,146 +196,274 @@
       display: flex;
       align-items: flex-end;
       justify-content: space-between;
-      margin-bottom: 16px;
-      gap: 20px;
+
+      gap: 24px;
+
+      margin-bottom: 18px;
     }
 
     .hero h2 {
-      margin: 0 0 5px;
-      font-size: 25px;
-      letter-spacing: -.035em;
+      margin: 0 0 6px;
+
+      font-size: 29px;
+      line-height: 1.1;
+
+      letter-spacing: -0.045em;
+
+      font-weight: 750;
     }
 
     .hero p {
       margin: 0;
-      color: var(--muted);
-      font-size: 13px;
+
+      color: var(--text-secondary);
+
+      font-size: 14px;
     }
 
     .actions {
       display: flex;
-      gap: 8px;
+      gap: 9px;
     }
 
     button {
-      border: 1px solid var(--border);
+      border: 1px solid var(--border-strong);
+
+      background: var(--surface);
+
       color: var(--text);
-      background: var(--panel-2);
-      border-radius: 8px;
-      padding: 9px 14px;
-      font: inherit;
+
+      border-radius: 9px;
+
+      padding: 10px 16px;
+
       font-size: 13px;
+      font-weight: 600;
+
       cursor: pointer;
-      transition: .15s ease;
+
+      transition:
+        background 0.15s ease,
+        border-color 0.15s ease,
+        transform 0.15s ease,
+        box-shadow 0.15s ease;
     }
 
     button:hover {
-      border-color: #3b4351;
-      background: #1a1f29;
+      background: var(--surface-soft);
+
+      border-color: #b9c0ca;
+    }
+
+    button:active {
+      transform: translateY(1px);
     }
 
     .run {
+      min-width: 116px;
+
       border-color: transparent;
+
       background: var(--accent);
-      font-weight: 700;
-      min-width: 112px;
+
+      color: white;
+
+      box-shadow:
+        0 5px 16px rgba(109, 74, 255, 0.22);
     }
 
     .run:hover {
       background: var(--accent-hover);
+
       border-color: transparent;
+
+      box-shadow:
+        0 7px 20px rgba(109, 74, 255, 0.27);
     }
 
     .run:disabled {
-      opacity: .6;
+      opacity: 0.65;
+
       cursor: wait;
+
+      transform: none;
     }
+
+    /* --------------------------------------------------
+       WORKSPACE
+    -------------------------------------------------- */
 
     .workspace {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
+
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+
+      gap: 16px;
+
+      align-items: start;
     }
 
     .card {
-      background: rgba(17, 20, 26, .92);
+      background: var(--surface);
+
       border: 1px solid var(--border);
+
       border-radius: 12px;
+
       overflow: hidden;
-      box-shadow: 0 18px 50px rgba(0, 0, 0, .18);
+
+      box-shadow: var(--shadow);
     }
 
     .card-header {
-      height: 46px;
+      height: 50px;
+
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 14px;
+
+      padding: 0 16px;
+
+      background: var(--surface-soft);
+
       border-bottom: 1px solid var(--border);
-      background: rgba(21, 25, 34, .7);
     }
 
     .card-title {
       display: flex;
       align-items: center;
+
       gap: 9px;
+
+      color: #303641;
+
       font-size: 12px;
-      font-weight: 700;
+
+      font-weight: 750;
+
       text-transform: uppercase;
-      letter-spacing: .08em;
-      color: #b9c0cc;
+
+      letter-spacing: 0.08em;
     }
 
     .badge {
-      font-size: 10px;
-      color: var(--muted);
-      background: #1b2029;
-      padding: 3px 7px;
+      display: inline-flex;
+      align-items: center;
+
+      padding: 4px 8px;
+
       border-radius: 999px;
+
+      background: #eef0f4;
+
+      color: #6c7480;
+
+      font-size: 10px;
+
+      font-weight: 600;
+
       text-transform: none;
+
       letter-spacing: 0;
-      font-weight: 500;
     }
+
+    /* --------------------------------------------------
+       CODE EDITOR
+    -------------------------------------------------- */
 
     .editor-wrap {
       display: grid;
-      grid-template-columns: 48px 1fr;
-      min-height: 420px;
-      background: var(--editor);
+
+      grid-template-columns: 52px minmax(0, 1fr);
+
+      min-height: 520px;
+
+      background: var(--surface-code);
     }
 
     .lines {
-      padding: 17px 10px 17px 0;
+      padding: 18px 12px 18px 0;
+
       text-align: right;
-      color: #4d5665;
-      background: #0b0e13;
+
+      color: var(--line-number);
+
+      background: #f3f5f8;
+
       border-right: 1px solid var(--border);
-      font: 13px/1.65 "SFMono-Regular", Consolas, monospace;
+
+      font-family:
+        "SFMono-Regular",
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        "Liberation Mono",
+        monospace;
+
+      font-size: 14px;
+
+      line-height: 1.65;
+
       user-select: none;
+
+      white-space: pre;
+
       overflow: hidden;
     }
 
     textarea {
       width: 100%;
-      min-height: 420px;
+
+      min-height: 520px;
+
       resize: vertical;
+
       border: 0;
+
       outline: 0;
-      padding: 17px 18px;
-      color: #e8ebf0;
-      background: transparent;
-      font: 13px/1.65 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+
+      padding: 18px 20px;
+
+      background: var(--surface-code);
+
+      color: var(--code);
+
+      font-family:
+        "SFMono-Regular",
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        "Liberation Mono",
+        monospace;
+
+      font-size: 14px;
+
+      line-height: 1.65;
+
+      letter-spacing: 0;
+
       tab-size: 2;
+
+      white-space: pre;
+
+      overflow: auto;
     }
 
     textarea::selection {
-      background: rgba(124, 92, 255, .28);
+      background: rgba(109, 74, 255, 0.18);
     }
 
+    /* --------------------------------------------------
+       RESULT
+    -------------------------------------------------- */
+
     .output {
-      min-height: 420px;
-      background: #0d1015;
+      background: #ffffff;
+
+      min-height: 520px;
+
       display: flex;
+
       flex-direction: column;
     }
 
@@ -255,163 +473,428 @@
 
     .output-section:last-child {
       border-bottom: 0;
-      flex: 1;
     }
 
     .section-label {
-      padding: 10px 14px 7px;
-      color: #697384;
+      padding: 13px 16px 8px;
+
+      color: #69717d;
+
       font-size: 10px;
+
       text-transform: uppercase;
-      letter-spacing: .1em;
-      font-weight: 700;
+
+      letter-spacing: 0.11em;
+
+      font-weight: 750;
     }
+
+    /* IMPORTANT:
+       No max-height here.
+       The result expands naturally instead of
+       showing a tiny internal scrollbar.
+    */
 
     pre {
       margin: 0;
-      padding: 0 14px 14px;
-      min-height: 60px;
-      max-height: 170px;
-      overflow: auto;
+
+      padding: 4px 18px 18px;
+
+      min-height: 44px;
+
+      color: #252a31;
+
+      font-family:
+        "SFMono-Regular",
+        "Cascadia Code",
+        "JetBrains Mono",
+        Consolas,
+        "Liberation Mono",
+        monospace;
+
+      font-size: 13px;
+
+      line-height: 1.75;
+
       white-space: pre-wrap;
+
+      overflow-wrap: anywhere;
+
       word-break: break-word;
-      color: #d9dee8;
-      font: 12px/1.6 "SFMono-Regular", Consolas, monospace;
+
+      overflow: visible;
+    }
+
+    #output {
+      background: #ffffff;
     }
 
     #error {
       color: var(--red);
+
+      background: var(--red-soft);
+
+      min-height: 0;
     }
 
+    #error:empty {
+      display: none;
+    }
+
+    /* --------------------------------------------------
+       PLOT
+    -------------------------------------------------- */
+
     .plot-area {
-      min-height: 190px;
+      min-height: 240px;
+
       display: grid;
+
       place-items: center;
-      padding: 14px;
-      color: #586171;
+
+      padding: 20px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #fafbfc 100%
+        );
+
+      color: #858d99;
+
       font-size: 12px;
     }
 
     .plot-area img {
-      max-width: 100%;
-      max-height: 300px;
-      border-radius: 7px;
-      background: white;
       display: none;
+
+      max-width: 100%;
+
+      max-height: 420px;
+
+      object-fit: contain;
+
+      border: 1px solid var(--border);
+
+      border-radius: 8px;
+
+      background: white;
+
+      box-shadow:
+        0 4px 18px rgba(20, 30, 45, 0.08);
     }
 
     .empty {
       text-align: center;
+
+      color: #8a929d;
+
       line-height: 1.6;
     }
 
+    /* --------------------------------------------------
+       FOOTER
+    -------------------------------------------------- */
+
     .footer {
-      margin-top: 12px;
+      margin-top: 13px;
+
       display: flex;
       justify-content: space-between;
-      color: #667080;
+
+      color: #7b8490;
+
       font-size: 11px;
+
       padding: 0 3px;
     }
 
     .kbd {
-      border: 1px solid var(--border);
-      background: var(--panel);
+      display: inline-block;
+
+      border: 1px solid var(--border-strong);
+
+      background: white;
+
       padding: 2px 6px;
-      border-radius: 4px;
+
+      border-radius: 5px;
+
+      color: #656e7a;
+
       font-family: monospace;
-      color: #8992a2;
+
+      box-shadow:
+        0 1px 1px rgba(0, 0, 0, 0.04);
     }
 
-    @media (max-width: 850px) {
-      header { padding: 0 16px; }
-      main { width: min(100% - 24px, 700px); }
-      .hero { align-items: flex-start; flex-direction: column; }
-      .workspace { grid-template-columns: 1fr; }
-      .editor-wrap, textarea, .output { min-height: 360px; }
-      .output { min-height: 360px; }
+    /* --------------------------------------------------
+       RESPONSIVE
+    -------------------------------------------------- */
+
+    @media (max-width: 950px) {
+      header {
+        padding: 0 18px;
+      }
+
+      main {
+        width: min(100% - 24px, 720px);
+
+        margin-top: 22px;
+      }
+
+      .hero {
+        align-items: flex-start;
+
+        flex-direction: column;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .editor-wrap {
+        min-height: 420px;
+      }
+
+      textarea {
+        min-height: 420px;
+      }
+
+      .output {
+        min-height: 420px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .brand-subtitle {
+        display: none;
+      }
+
+      .hero h2 {
+        font-size: 25px;
+      }
+
+      .actions {
+        width: 100%;
+      }
+
+      .actions button {
+        flex: 1;
+      }
+
+      .footer {
+        flex-direction: column;
+
+        gap: 8px;
+      }
     }
   </style>
 </head>
 
 <body>
   <div class="app">
+
     <header>
       <div class="brand">
+
         <div class="logo">S</div>
-        <div>
-          <h1>Scilab Cloud <span>Web Executor</span></h1>
+
+        <div class="brand-title">
+          <h1>Scilab Cloud</h1>
+          <span class="brand-subtitle">
+            Web Executor
+          </span>
         </div>
+
       </div>
+
       <div class="status">
         <span class="dot" id="statusDot"></span>
         <span id="statusText">Ready</span>
       </div>
     </header>
 
+
     <main>
+
       <div class="hero">
+
         <div>
           <h2>Run Scilab in your browser</h2>
-          <p>Write Scilab code, execute it in the cloud, and view output or plots instantly.</p>
+
+          <p>
+            Write Scilab code, execute it in the cloud,
+            and view output or plots instantly.
+          </p>
         </div>
+
         <div class="actions">
-          <button id="resetBtn">Reset</button>
-          <button class="run" id="runBtn">▶ Run</button>
+
+          <button id="resetBtn">
+            Reset
+          </button>
+
+          <button
+            class="run"
+            id="runBtn"
+          >
+            ▶ Run
+          </button>
+
         </div>
+
       </div>
+
 
       <div class="workspace">
+
+        <!-- CODE -->
         <section class="card">
+
           <div class="card-header">
-            <div class="card-title">Code <span class="badge">Scilab</span></div>
-            <div class="badge" id="charCount">0 chars</div>
+
+            <div class="card-title">
+              Code
+
+              <span class="badge">
+                Scilab
+              </span>
+            </div>
+
+            <div
+              class="badge"
+              id="charCount"
+            >
+              0 chars
+            </div>
+
           </div>
+
 
           <div class="editor-wrap">
-            <div class="lines" id="lineNumbers">1</div>
-            <textarea id="code" spellcheck="false" aria-label="Scilab code"></textarea>
+
+            <div
+              class="lines"
+              id="lineNumbers"
+            >
+              1
+            </div>
+
+            <textarea
+              id="code"
+              spellcheck="false"
+              aria-label="Scilab code"
+            ></textarea>
+
           </div>
+
         </section>
 
+
+        <!-- RESULT -->
         <section class="card">
+
           <div class="card-header">
-            <div class="card-title">Result</div>
-            <div class="badge" id="runtime">Ready</div>
+
+            <div class="card-title">
+              Result
+            </div>
+
+            <div
+              class="badge"
+              id="runtime"
+            >
+              Ready
+            </div>
+
           </div>
+
 
           <div class="output">
+
+            <!-- OUTPUT -->
             <div class="output-section">
-              <div class="section-label">Output</div>
+
+              <div class="section-label">
+                Output
+              </div>
+
               <pre id="output">Run your Scilab code to see the result.</pre>
+
             </div>
 
-            <div class="output-section">
-              <div class="section-label">Errors</div>
+
+            <!-- ERRORS -->
+            <div
+              class="output-section"
+              id="errorSection"
+            >
+
+              <div class="section-label">
+                Errors
+              </div>
+
               <pre id="error"></pre>
+
             </div>
 
+
+            <!-- PLOT -->
             <div class="output-section">
-              <div class="section-label">Plot</div>
+
+              <div class="section-label">
+                Plot
+              </div>
+
               <div class="plot-area">
-                <div class="empty" id="plotEmpty">
+
+                <div
+                  class="empty"
+                  id="plotEmpty"
+                >
                   No plot generated yet.
                 </div>
-                <img id="plot" alt="Scilab plot" />
+
+                <img
+                  id="plot"
+                  alt="Scilab plot"
+                />
+
               </div>
+
             </div>
+
           </div>
+
         </section>
+
       </div>
+
 
       <div class="footer">
-        <span>Powered by FastAPI + Scilab on Render</span>
-        <span><span class="kbd">⌘</span> + <span class="kbd">Enter</span> to run</span>
+
+        <span>
+          Powered by FastAPI + Scilab on Render
+        </span>
+
+        <span>
+          <span class="kbd">⌘</span>
+          +
+          <span class="kbd">Enter</span>
+          to run
+        </span>
+
       </div>
+
     </main>
+
   </div>
 
+
   <script>
+
     const defaultCode = `// Try Scilab in the cloud
 
 x = 0:0.1:10;
@@ -423,193 +906,451 @@ disp("Maximum value: " + string(max(y)));
 plot(x, y);
 xtitle("Sine Wave", "x", "sin(x)");`;
 
-    const code = document.getElementById("code");
-    const lineNumbers = document.getElementById("lineNumbers");
-    const charCount = document.getElementById("charCount");
-    const runBtn = document.getElementById("runBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const output = document.getElementById("output");
-    const error = document.getElementById("error");
-    const plot = document.getElementById("plot");
-    const plotEmpty = document.getElementById("plotEmpty");
-    const runtime = document.getElementById("runtime");
-    const statusText = document.getElementById("statusText");
-    const statusDot = document.getElementById("statusDot");
+
+    const code =
+      document.getElementById("code");
+
+    const lineNumbers =
+      document.getElementById("lineNumbers");
+
+    const charCount =
+      document.getElementById("charCount");
+
+    const runBtn =
+      document.getElementById("runBtn");
+
+    const resetBtn =
+      document.getElementById("resetBtn");
+
+    const output =
+      document.getElementById("output");
+
+    const error =
+      document.getElementById("error");
+
+    const plot =
+      document.getElementById("plot");
+
+    const plotEmpty =
+      document.getElementById("plotEmpty");
+
+    const runtime =
+      document.getElementById("runtime");
+
+    const statusText =
+      document.getElementById("statusText");
+
+    const statusDot =
+      document.getElementById("statusDot");
+
 
     code.value = defaultCode;
 
-    function updateEditorMeta() {
-      const lines = code.value.split("\n").length;
-      lineNumbers.textContent = Array.from(
-        { length: lines },
-        (_, i) => i + 1
-      ).join("\n");
 
-      charCount.textContent = `${code.value.length.toLocaleString()} chars`;
+    /* --------------------------------------------------
+       EDITOR
+    -------------------------------------------------- */
+
+    function updateEditorMeta() {
+
+      const lines =
+        code.value.split("\n").length;
+
+      lineNumbers.textContent =
+        Array.from(
+          { length: lines },
+          (_, i) => i + 1
+        ).join("\n");
+
+      charCount.textContent =
+        `${code.value.length.toLocaleString()} chars`;
     }
 
-    code.addEventListener("input", updateEditorMeta);
 
-    code.addEventListener("scroll", () => {
-      lineNumbers.scrollTop = code.scrollTop;
-    });
+    code.addEventListener(
+      "input",
+      updateEditorMeta
+    );
 
-    code.addEventListener("keydown", (event) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-        event.preventDefault();
-        runScilab();
+
+    code.addEventListener(
+      "scroll",
+      () => {
+        lineNumbers.scrollTop =
+          code.scrollTop;
       }
+    );
 
-      if (event.key === "Tab") {
-        event.preventDefault();
-        const start = code.selectionStart;
-        const end = code.selectionEnd;
+
+    code.addEventListener(
+      "keydown",
+      (event) => {
+
+        if (
+          (event.metaKey || event.ctrlKey) &&
+          event.key === "Enter"
+        ) {
+
+          event.preventDefault();
+
+          runScilab();
+
+          return;
+        }
+
+
+        if (event.key === "Tab") {
+
+          event.preventDefault();
+
+          const start =
+            code.selectionStart;
+
+          const end =
+            code.selectionEnd;
+
+          code.value =
+            code.value.substring(0, start) +
+            "  " +
+            code.value.substring(end);
+
+          code.selectionStart =
+            code.selectionEnd =
+            start + 2;
+
+          updateEditorMeta();
+        }
+
+      }
+    );
+
+
+    /* --------------------------------------------------
+       RESET
+    -------------------------------------------------- */
+
+    resetBtn.addEventListener(
+      "click",
+      () => {
+
         code.value =
-          code.value.substring(0, start) +
-          "  " +
-          code.value.substring(end);
-        code.selectionStart = code.selectionEnd = start + 2;
-        updateEditorMeta();
-      }
-    });
+          defaultCode;
 
-    resetBtn.addEventListener("click", () => {
-      code.value = defaultCode;
-      output.textContent = "Run your Scilab code to see the result.";
-      error.textContent = "";
-      plot.removeAttribute("src");
-      plot.style.display = "none";
-      plotEmpty.style.display = "block";
-      runtime.textContent = "Ready";
-      statusText.textContent = "Ready";
-      statusDot.style.background = "var(--green)";
-      updateEditorMeta();
-      code.focus();
-    });
+        output.textContent =
+          "Run your Scilab code to see the result.";
+
+        error.textContent = "";
+
+        plot.removeAttribute("src");
+
+        plot.style.display =
+          "none";
+
+        plotEmpty.style.display =
+          "block";
+
+        plotEmpty.textContent =
+          "No plot generated yet.";
+
+        runtime.textContent =
+          "Ready";
+
+        statusText.textContent =
+          "Ready";
+
+        statusDot.style.background =
+          "var(--green)";
+
+        updateEditorMeta();
+
+        code.focus();
+      }
+    );
+
+
+    /* --------------------------------------------------
+       RUNNING STATE
+    -------------------------------------------------- */
 
     function setRunning(running) {
-      runBtn.disabled = running;
-      runBtn.textContent = running ? "Running..." : "▶ Run";
-      statusText.textContent = running ? "Executing Scilab" : "Ready";
-      statusDot.style.background = running
-        ? "var(--accent)"
-        : "var(--green)";
+
+      runBtn.disabled =
+        running;
+
+      runBtn.textContent =
+        running
+          ? "Running..."
+          : "▶ Run";
+
+      statusText.textContent =
+        running
+          ? "Executing Scilab"
+          : "Ready";
+
+      statusDot.style.background =
+        running
+          ? "var(--accent)"
+          : "var(--green)";
     }
+
+
+    /* --------------------------------------------------
+       EXECUTE SCILAB
+    -------------------------------------------------- */
 
     async function runScilab() {
-  const source = code.value.trim();
 
-  if (!source) {
-    error.textContent = "Please enter some Scilab code.";
-    return;
-  }
+      const source =
+        code.value.trim();
 
-  setRunning(true);
-  output.textContent = "Executing...";
-  error.textContent = "";
-  runtime.textContent = "Running";
-  plot.style.display = "none";
-  plotEmpty.style.display = "block";
-  plotEmpty.textContent = "No plot generated yet.";
 
-  const started = performance.now();
+      if (!source) {
 
-  try {
-    const response = await fetch("/execute", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ code: source })
-    });
-
-    const result = await response.json();
-
-    const elapsed =
-      ((performance.now() - started) / 1000).toFixed(2);
-
-    runtime.textContent = `${elapsed}s`;
-
-    if (!response.ok) {
-      output.textContent = "";
-      error.textContent =
-        result.error ||
-        `Request failed with status ${response.status}.`;
-      return;
-    }
-
-    // Show Scilab's text output immediately
-    output.textContent =
-      result.output || "(No stdout output)";
-
-    error.textContent = result.error || "";
-
-    // If this code generated a plot, start checking
-    // for the background plot.
-    if (result.plot_job_id) {
-      plotEmpty.textContent = "Generating plot...";
-
-      void pollPlot(result.plot_job_id);
-    } else {
-      plotEmpty.textContent = "No plot generated.";
-    }
-
-  } catch (err) {
-    runtime.textContent = "Failed";
-    output.textContent = "";
-    error.textContent =
-      "Could not connect to the Scilab server. Please try again.";
-
-    console.error(err);
-
-  } finally {
-    setRunning(false);
-  }
-}
-    async function pollPlot(jobId) {
-  const maxAttempts = 60;
-
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    try {
-      const response = await fetch(`/plot/${jobId}`);
-      const result = await response.json();
-
-      if (result.status === "complete") {
-        plot.src =
-          `data:image/png;base64,${result.plot_base64}`;
-
-        plot.style.display = "block";
-        plotEmpty.style.display = "none";
+        error.textContent =
+          "Please enter some Scilab code.";
 
         return;
       }
 
-      if (result.status === "failed") {
-        plotEmpty.textContent =
-          result.error || "Plot generation failed.";
 
-        return;
-      }
+      setRunning(true);
 
-      // queued / running
-      await new Promise(resolve =>
-        setTimeout(resolve, 1000)
-      );
 
-    } catch (err) {
-      console.error("Plot polling failed:", err);
+      output.textContent =
+        "Executing...";
+
+      error.textContent = "";
+
+      runtime.textContent =
+        "Running";
+
+
+      plot.style.display =
+        "none";
+
+      plot.removeAttribute("src");
+
+      plotEmpty.style.display =
+        "block";
+
       plotEmpty.textContent =
-        "Could not retrieve the plot.";
-      return;
+        "No plot generated yet.";
+
+
+      const started =
+        performance.now();
+
+
+      try {
+
+        const response =
+          await fetch(
+            "/execute",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+                  code: source
+                })
+            }
+          );
+
+
+        const result =
+          await response.json();
+
+
+        const elapsed =
+          (
+            (performance.now() -
+              started) /
+            1000
+          ).toFixed(2);
+
+
+        runtime.textContent =
+          `${elapsed}s`;
+
+
+        if (!response.ok) {
+
+          output.textContent =
+            "";
+
+          error.textContent =
+            result.error ||
+            `Request failed with status ${response.status}.`;
+
+          return;
+        }
+
+
+        /*
+         * TEXT OUTPUT IS SHOWN
+         * IMMEDIATELY.
+         */
+
+        output.textContent =
+          result.output ||
+          "(No stdout output)";
+
+
+        error.textContent =
+          result.error || "";
+
+
+        /*
+         * BACKGROUND PLOT
+         */
+
+        if (result.plot_job_id) {
+
+          plotEmpty.textContent =
+            "Generating plot...";
+
+          void pollPlot(
+            result.plot_job_id
+          );
+
+        } else {
+
+          plotEmpty.textContent =
+            "No plot generated.";
+
+        }
+
+
+      } catch (err) {
+
+        runtime.textContent =
+          "Failed";
+
+        output.textContent =
+          "";
+
+        error.textContent =
+          "Could not connect to the Scilab server. Please try again.";
+
+        console.error(err);
+
+      } finally {
+
+        setRunning(false);
+
+      }
+
     }
-  }
 
-  plotEmpty.textContent =
-    "Plot generation is taking too long.";
-}
 
-    runBtn.addEventListener("click", runScilab);
+    /* --------------------------------------------------
+       PLOT POLLING
+    -------------------------------------------------- */
+
+    async function pollPlot(jobId) {
+
+      const maxAttempts =
+        60;
+
+
+      for (
+        let attempt = 0;
+        attempt < maxAttempts;
+        attempt++
+      ) {
+
+        try {
+
+          const response =
+            await fetch(
+              `/plot/${jobId}`
+            );
+
+
+          const result =
+            await response.json();
+
+
+          if (
+            result.status ===
+            "complete"
+          ) {
+
+            plot.src =
+              `data:image/png;base64,${result.plot_base64}`;
+
+            plot.style.display =
+              "block";
+
+            plotEmpty.style.display =
+              "none";
+
+            return;
+          }
+
+
+          if (
+            result.status ===
+            "failed"
+          ) {
+
+            plotEmpty.textContent =
+              result.error ||
+              "Plot generation failed.";
+
+            return;
+          }
+
+
+          await new Promise(
+            resolve =>
+              setTimeout(
+                resolve,
+                1000
+              )
+          );
+
+
+        } catch (err) {
+
+          console.error(
+            "Plot polling failed:",
+            err
+          );
+
+          plotEmpty.textContent =
+            "Could not retrieve the plot.";
+
+          return;
+        }
+
+      }
+
+
+      plotEmpty.textContent =
+        "Plot generation is taking too long.";
+    }
+
+
+    /* --------------------------------------------------
+       STARTUP
+    -------------------------------------------------- */
+
+    runBtn.addEventListener(
+      "click",
+      runScilab
+    );
+
     updateEditorMeta();
+
+    code.focus();
+
   </script>
+
 </body>
 </html>
