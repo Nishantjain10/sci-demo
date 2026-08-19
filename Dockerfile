@@ -24,7 +24,9 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+RUN python -m pip install --upgrade pip \
+    && python -m pip install --no-cache-dir --retries 5 --timeout 120 -r requirements.txt
 
 COPY main.py index.html .
 
