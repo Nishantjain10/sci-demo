@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
-EXECUTION_TIMEOUT_SECONDS = 10
+EXECUTION_TIMEOUT_SECONDS = 30
 MAX_CODE_LENGTH = 100_000
 TMP_DIR = Path("/tmp")
 SCILAB_HOME = TMP_DIR / "scilab-home"
