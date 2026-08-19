@@ -2,12 +2,13 @@ FROM python:3.10-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    SCILAB_BINARY=scilab-cli
+    SCILAB_BINARY=scilab
 
 WORKDIR /app
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        scilab \
         scilab-cli \
         scilab-full-bin \
         xvfb \
