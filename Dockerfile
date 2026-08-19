@@ -2,7 +2,7 @@ FROM python:3.10-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    SCILAB_BINARY=scilab
+    SCILAB_BINARY=scilab-adv-cli
 
 WORKDIR /app
 
