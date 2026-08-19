@@ -289,20 +289,21 @@ def _run_fast_execution(
     )
 
     try:
-        scilab_cli = _find_binary(
-            "scilab-cli",
-        )
+        scilab_binary = _find_binary("scilab")
 
-        command = [
-            scilab_cli,
-            "-nb",
-            "-nouserstartup",
-            "-noatomsautoload",
-            "-f",
-            str(script_path),
-            "-quit",
-        ]
-
+command = [
+    "xvfb-run",
+    "-a",
+    "--server-args=-screen 0 1024x768x24",
+    scilab_binary,
+    "-nw",
+    "-nb",
+    "-nouserstartup",
+    "-noatomsautoload",
+    "-f",
+    str(plot_script),
+    "-quit",
+]
         try:
             completed = _run_process(
                 command,
@@ -347,15 +348,13 @@ __PLOT_FILE__ = "{plot_path.as_posix()}";
 // --- End user code ---
 
 // Export the latest figure.
-try
-    fig_ids = winsid();
+fig_ids = winsid();
 
-    if ~isempty(fig_ids) then
-        xs2png(max(fig_ids), __PLOT_FILE__);
-    end
-catch
-    // No plot was generated.
+if ~isempty(fig_ids) then
+    xs2png(max(fig_ids), __PLOT_FILE__);
 end
+
+exit;
 """
 
     script_path = _write_script(
