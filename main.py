@@ -26,14 +26,22 @@ from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
 FAST_TIMEOUT_SECONDS = 10
 PLOT_TIMEOUT_SECONDS = 60
-
 MAX_CODE_LENGTH = 100_000
 
 TMP_DIR = Path("/tmp")
 SCILAB_HOME = TMP_DIR / "scilab-home"
 
+
+# ---------------------------------------------------------------------------
+# FastAPI
+# ---------------------------------------------------------------------------
 
 app = FastAPI(
     title="Scilab Web Executor API",
@@ -50,6 +58,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+# ---------------------------------------------------------------------------
+# Models
+# ---------------------------------------------------------------------------
 
 class ExecuteRequest(BaseModel):
     code: str = Field(
@@ -72,10 +84,17 @@ class PlotJobResponse(BaseModel):
     error: Optional[str] = None
 
 
-# In-memory plot jobs.
+# ---------------------------------------------------------------------------
+# In-memory plot jobs
+# ---------------------------------------------------------------------------
+
 # This is intentionally simple for the presentation/demo.
 plot_jobs: dict[str, dict] = {}
 
+
+# ---------------------------------------------------------------------------
+# Graphics detection
+# ---------------------------------------------------------------------------
 
 GRAPHICS_FUNCTIONS = [
     "plot",
@@ -111,21 +130,12 @@ GRAPHICS_FUNCTIONS = [
 ]
 
 
-@app.get("/")
-async def root():
-    return FileResponse("/app/index.html")
-
-
-@app.get("/health")
-async def health_check() -> dict[str, str]:
-    return {"status": "ok"}
-
-
 def _contains_graphics(code: str) -> bool:
-    """Detect whether the submitted code contains graphics commands."""
+    """Detect whether submitted code contains graphics commands."""
 
     for function_name in GRAPHICS_FUNCTIONS:
         pattern = rf"\b{re.escape(function_name)}\s*\("
+
         if re.search(pattern, code):
             return True
 
@@ -137,8 +147,8 @@ def _remove_graphics_lines(code: str) -> str:
     Remove common single-line graphics commands from the fast
     no-graphics execution.
 
-    The full original code is still used by the background
-    graphics execution.
+    The original code is still used by the background graphics
+    execution.
     """
 
     graphics_pattern = "|".join(
@@ -157,6 +167,24 @@ def _remove_graphics_lines(code: str) -> str:
     )
 
 
+# ---------------------------------------------------------------------------
+# Routes
+# ---------------------------------------------------------------------------
+
+@app.get("/")
+async def root():
+    return FileResponse("/app/index.html")
+
+
+@app.get("/health")
+async def health_check() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+# ---------------------------------------------------------------------------
+# File / process helpers
+# ---------------------------------------------------------------------------
+
 def _write_script(
     code: str,
     execution_id: str,
@@ -171,6 +199,65 @@ def _write_script(
     )
 
     return path
+
+
+def _ensure_scilab_home() -> None:
+    SCILAB_HOME.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+
+def _find_binary(name: str) -> str:
+    """Find a Scilab executable."""
+
+    path = shutil.which(name)
+
+    if not path:
+        raise RuntimeError(
+            f"Scilab binary '{name}' was not found."
+        )
+
+    return path
+
+
+def _terminate_process(
+    process: subprocess.Popen[str],
+) -> None:
+    """Terminate the entire process group."""
+
+    if process.poll() is not None:
+        return
+
+    try:
+        os.killpg(
+            os.getpgid(process.pid),
+            signal.SIGTERM,
+        )
+
+        process.wait(timeout=2)
+
+    except (
+        ProcessLookupError,
+        subprocess.TimeoutExpired,
+    ):
+        pass
+
+    if process.poll() is None:
+        try:
+            os.killpg(
+                os.getpgid(process.pid),
+                signal.SIGKILL,
+            )
+
+        except ProcessLookupError:
+            pass
+
+        try:
+            process.wait(timeout=2)
+
+        except subprocess.TimeoutExpired:
+            pass
 
 
 def _run_process(
@@ -219,55 +306,9 @@ def _run_process(
     )
 
 
-def _terminate_process(
-    process: subprocess.Popen[str],
-) -> None:
-    """Terminate the entire process group."""
-
-    if process.poll() is not None:
-        return
-
-    try:
-        os.killpg(
-            os.getpgid(process.pid),
-            signal.SIGTERM,
-        )
-
-        process.wait(timeout=2)
-
-    except (
-        ProcessLookupError,
-        subprocess.TimeoutExpired,
-    ):
-        pass
-
-    if process.poll() is None:
-        try:
-            os.killpg(
-                os.getpgid(process.pid),
-                signal.SIGKILL,
-            )
-        except ProcessLookupError:
-            pass
-
-        try:
-            process.wait(timeout=2)
-        except subprocess.TimeoutExpired:
-            pass
-
-
-def _find_binary(name: str) -> str:
-    """Find a Scilab executable."""
-
-    path = shutil.which(name)
-
-    if not path:
-        raise RuntimeError(
-            f"Scilab binary '{name}' was not found."
-        )
-
-    return path
-
+# ---------------------------------------------------------------------------
+# Fast Scilab execution
+# ---------------------------------------------------------------------------
 
 def _run_fast_execution(
     code: str,
@@ -289,21 +330,20 @@ def _run_fast_execution(
     )
 
     try:
-        scilab_binary = _find_binary("scilab")
+        scilab_cli = _find_binary(
+            "scilab-cli",
+        )
 
-command = [
-    "xvfb-run",
-    "-a",
-    "--server-args=-screen 0 1024x768x24",
-    scilab_binary,
-    "-nw",
-    "-nb",
-    "-nouserstartup",
-    "-noatomsautoload",
-    "-f",
-    str(plot_script),
-    "-quit",
-]
+        command = [
+            scilab_cli,
+            "-nb",
+            "-nouserstartup",
+            "-noatomsautoload",
+            "-f",
+            str(script_path),
+            "-quit",
+        ]
+
         try:
             completed = _run_process(
                 command,
@@ -326,14 +366,19 @@ command = [
     finally:
         try:
             script_path.unlink()
+
         except OSError:
             pass
 
 
+# ---------------------------------------------------------------------------
+# Plot script
+# ---------------------------------------------------------------------------
+
 def _build_plot_wrapper(
     user_code: str,
     execution_id: str,
-) -> tuple[str, Path]:
+) -> tuple[Path, Path]:
     """Build the graphics-enabled Scilab script."""
 
     plot_path = TMP_DIR / f"{execution_id}_plot.png"
@@ -365,6 +410,10 @@ exit;
     return script_path, plot_path
 
 
+# ---------------------------------------------------------------------------
+# Background plot execution
+# ---------------------------------------------------------------------------
+
 def _generate_plot(
     job_id: str,
     user_code: str,
@@ -374,8 +423,8 @@ def _generate_plot(
     already been returned.
     """
 
-    plot_script = None
-    plot_path = None
+    plot_script: Optional[Path] = None
+    plot_path: Optional[Path] = None
 
     try:
         plot_jobs[job_id]["status"] = "running"
@@ -419,9 +468,10 @@ def _generate_plot(
                     f"{PLOT_TIMEOUT_SECONDS} seconds."
                 ),
             }
+
             return
 
-        if completed.returncode != 0 and not plot_path.is_file():
+        if completed.returncode != 0:
             plot_jobs[job_id] = {
                 "status": "failed",
                 "plot_base64": None,
@@ -429,6 +479,7 @@ def _generate_plot(
                     "Scilab plot generation failed."
                 ),
             }
+
             return
 
         if not plot_path.is_file():
@@ -437,6 +488,7 @@ def _generate_plot(
                 "plot_base64": None,
                 "error": "No plot image was generated.",
             }
+
             return
 
         image_data = base64.b64encode(
@@ -467,25 +519,24 @@ def _generate_plot(
         }
 
     finally:
-        if plot_script:
+        if plot_script is not None:
             try:
                 plot_script.unlink()
+
             except OSError:
                 pass
 
-        if plot_path:
+        if plot_path is not None:
             try:
                 plot_path.unlink()
+
             except OSError:
                 pass
 
 
-def _ensure_scilab_home() -> None:
-    SCILAB_HOME.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
+# ---------------------------------------------------------------------------
+# Execute endpoint
+# ---------------------------------------------------------------------------
 
 @app.post(
     "/execute",
@@ -509,7 +560,7 @@ async def execute_scilab(
         execution_id,
     )
 
-    plot_job_id = None
+    plot_job_id: Optional[str] = None
 
     if has_graphics:
         plot_job_id = str(uuid.uuid4())
@@ -535,6 +586,10 @@ async def execute_scilab(
         plot_job_id=plot_job_id,
     )
 
+
+# ---------------------------------------------------------------------------
+# Plot status endpoint
+# ---------------------------------------------------------------------------
 
 @app.get(
     "/plot/{job_id}",
