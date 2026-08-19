@@ -96,15 +96,16 @@ def _build_command(sce_path: Path) -> list[str]:
     """Build the xvfb-wrapped Scilab batch command."""
     scilab_bin = _resolve_scilab_binary()
     return [
-        "xvfb-run",
-        "-a",
-        "--server-args=-screen 0 1024x768x24",
-        scilab_bin,
-        "-nb",
-        "-f",
-        str(sce_path),
-        "-quit",
-    ]
+    "xvfb-run",
+    "-a",
+    "--server-args=-screen 0 1024x768x24",
+    scilab_bin,
+    "-nw",
+    "-nb",
+    "-f",
+    str(sce_path),
+    "-quit",
+]
 
 
 def _ensure_scilab_home() -> None:
