@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scilab Cloud</title>
+  <style>
+    :root {
+      --bg: #0b0d11;
+      --panel: #11141a;
+      --panel-2: #151922;
+      --border: #252b36;
+      --text: #eef1f6;
+      --muted: #8d96a6;
+      --accent: #7c5cff;
+      --accent-hover: #9177ff;
+      --green: #42d392;
+      --red: #ff6b81;
+      --editor: #0d1015;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 85% -10%, rgba(124, 92, 255, .16), transparent 35%),
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(11, 13, 17, .86);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #7c5cff, #4f8cff);
+      font-weight: 800;
+      box-shadow: 0 8px 30px rgba(124, 92, 255, .25);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: -.02em;
+    }
+
+    .brand span {
+      color: var(--muted);
+      font-size: 12px;
+      margin-left: 4px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 12px rgba(66, 211, 146, .7);
+    }
+
+    main {
+      width: min(1400px, calc(100% - 40px));
+      margin: 24px auto 36px;
+      flex: 1;
+    }
+
+    .hero {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 20px;
+    }
+
+    .hero h2 {
+      margin: 0 0 5px;
+      font-size: 25px;
+      letter-spacing: -.035em;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: var(--panel-2);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      transition: .15s ease;
+    }
+
+    button:hover {
+      border-color: #3b4351;
+      background: #1a1f29;
+    }
+
+    .run {
+      border-color: transparent;
+      background: var(--accent);
+      font-weight: 700;
+      min-width: 112px;
+    }
+
+    .run:hover {
+      background: var(--accent-hover);
+      border-color: transparent;
+    }
+
+    .run:disabled {
+      opacity: .6;
+      cursor: wait;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+
+    .card {
+      background: rgba(17, 20, 26, .92);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .18);
+    }
+
+    .card-header {
+      height: 46px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(21, 25, 34, .7);
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #b9c0cc;
+    }
+
+    .badge {
+      font-size: 10px;
+      color: var(--muted);
+      background: #1b2029;
+      padding: 3px 7px;
+      border-radius: 999px;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 500;
+    }
+
+    .editor-wrap {
+      display: grid;
+      grid-template-columns: 48px 1fr;
+      min-height: 420px;
+      background: var(--editor);
+    }
+
+    .lines {
+      padding: 17px 10px 17px 0;
+      text-align: right;
+      color: #4d5665;
+      background: #0b0e13;
+      border-right: 1px solid var(--border);
+      font: 13px/1.65 "SFMono-Regular", Consolas, monospace;
+      user-select: none;
+      overflow: hidden;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 420px;
+      resize: vertical;
+      border: 0;
+      outline: 0;
+      padding: 17px 18px;
+      color: #e8ebf0;
+      background: transparent;
+      font: 13px/1.65 "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      tab-size: 2;
+    }
+
+    textarea::selection {
+      background: rgba(124, 92, 255, .28);
+    }
+
+    .output {
+      min-height: 420px;
+      background: #0d1015;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .output-section {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .output-section:last-child {
+      border-bottom: 0;
+      flex: 1;
+    }
+
+    .section-label {
+      padding: 10px 14px 7px;
+      color: #697384;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      font-weight: 700;
+    }
+
+    pre {
+      margin: 0;
+      padding: 0 14px 14px;
+      min-height: 60px;
+      max-height: 170px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      color: #d9dee8;
+      font: 12px/1.6 "SFMono-Regular", Consolas, monospace;
+    }
+
+    #error {
+      color: var(--red);
+    }
+
+    .plot-area {
+      min-height: 190px;
+      display: grid;
+      place-items: center;
+      padding: 14px;
+      color: #586171;
+      font-size: 12px;
+    }
+
+    .plot-area img {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 7px;
+      background: white;
+      display: none;
+    }
+
+    .empty {
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .footer {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      color: #667080;
+      font-size: 11px;
+      padding: 0 3px;
+    }
+
+    .kbd {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      color: #8992a2;
+    }
+
+    @media (max-width: 850px) {
+      header { padding: 0 16px; }
+      main { width: min(100% - 24px, 700px); }
+      .hero { align-items: flex-start; flex-direction: column; }
+      .workspace { grid-template-columns: 1fr; }
+      .editor-wrap, textarea, .output { min-height: 360px; }
+      .output { min-height: 360px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">S</div>
+        <div>
+          <h1>Scilab Cloud <span>Web Executor</span></h1>
+        </div>
+      </div>
+      <div class="status">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">Ready</span>
+      </div>
+    </header>
+
+    <main>
+      <div class="hero">
+        <div>
+          <h2>Run Scilab in your browser</h2>
+          <p>Write Scilab code, execute it in the cloud, and view output or plots instantly.</p>
+        </div>
+        <div class="actions">
+          <button id="resetBtn">Reset</button>
+          <button class="run" id="runBtn">▶ Run</button>
+        </div>
+      </div>
+
+      <div class="workspace">
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title">Code <span class="badge">Scilab</span></div>
+            <div class="badge" id="charCount">0 chars</div>
+          </div>
+
+          <div class="editor-wrap">
+            <div class="lines" id="lineNumbers">1</div>
+            <textarea id="code" spellcheck="false" aria-label="Scilab code"></textarea>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title">Result</div>
+            <div class="badge" id="runtime">Ready</div>
+          </div>
+
+          <div class="output">
+            <div class="output-section">
+              <div class="section-label">Output</div>
+              <pre id="output">Run your Scilab code to see the result.</pre>
+            </div>
+
+            <div class="output-section">
+              <div class="section-label">Errors</div>
+              <pre id="error"></pre>
+            </div>
+
+            <div class="output-section">
+              <div class="section-label">Plot</div>
+              <div class="plot-area">
+                <div class="empty" id="plotEmpty">
+                  No plot generated yet.
+                </div>
+                <img id="plot" alt="Scilab plot" />
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div class="footer">
+        <span>Powered by FastAPI + Scilab on Render</span>
+        <span><span class="kbd">⌘</span> + <span class="kbd">Enter</span> to run</span>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const defaultCode = `// Try Scilab in the cloud
+
+x = 0:0.1:10;
+y = sin(x);
+
+disp("Hello from Scilab Cloud!");
+disp("Maximum value: " + string(max(y)));
+
+plot(x, y);
+xtitle("Sine Wave", "x", "sin(x)");`;
+
+    const code = document.getElementById("code");
+    const lineNumbers = document.getElementById("lineNumbers");
+    const charCount = document.getElementById("charCount");
+    const runBtn = document.getElementById("runBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const output = document.getElementById("output");
+    const error = document.getElementById("error");
+    const plot = document.getElementById("plot");
+    const plotEmpty = document.getElementById("plotEmpty");
+    const runtime = document.getElementById("runtime");
+    const statusText = document.getElementById("statusText");
+    const statusDot = document.getElementById("statusDot");
+
+    code.value = defaultCode;
+
+    function updateEditorMeta() {
+      const lines = code.value.split("\n").length;
+      lineNumbers.textContent = Array.from(
+        { length: lines },
+        (_, i) => i + 1
+      ).join("\n");
+
+      charCount.textContent = `${code.value.length.toLocaleString()} chars`;
+    }
+
+    code.addEventListener("input", updateEditorMeta);
+
+    code.addEventListener("scroll", () => {
+      lineNumbers.scrollTop = code.scrollTop;
+    });
+
+    code.addEventListener("keydown", (event) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+        event.preventDefault();
+        runScilab();
+      }
+
+      if (event.key === "Tab") {
+        event.preventDefault();
+        const start = code.selectionStart;
+        const end = code.selectionEnd;
+        code.value =
+          code.value.substring(0, start) +
+          "  " +
+          code.value.substring(end);
+        code.selectionStart = code.selectionEnd = start + 2;
+        updateEditorMeta();
+      }
+    });
+
+    resetBtn.addEventListener("click", () => {
+      code.value = defaultCode;
+      output.textContent = "Run your Scilab code to see the result.";
+      error.textContent = "";
+      plot.removeAttribute("src");
+      plot.style.display = "none";
+      plotEmpty.style.display = "block";
+      runtime.textContent = "Ready";
+      statusText.textContent = "Ready";
+      statusDot.style.background = "var(--green)";
+      updateEditorMeta();
+      code.focus();
+    });
+
+    function setRunning(running) {
+      runBtn.disabled = running;
+      runBtn.textContent = running ? "Running..." : "▶ Run";
+      statusText.textContent = running ? "Executing Scilab" : "Ready";
+      statusDot.style.background = running
+        ? "var(--accent)"
+        : "var(--green)";
+    }
+
+    async function runScilab() {
+      const source = code.value.trim();
+
+      if (!source) {
+        error.textContent = "Please enter some Scilab code.";
+        return;
+      }
+
+      setRunning(true);
+      output.textContent = "Executing...";
+      error.textContent = "";
+      runtime.textContent = "Running";
+      plot.style.display = "none";
+      plotEmpty.style.display = "block";
+
+      const started = performance.now();
+
+      try {
+        const response = await fetch("/execute", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ code: source })
+        });
+
+        const result = await response.json();
+        const elapsed = ((performance.now() - started) / 1000).toFixed(2);
+
+        runtime.textContent = `${elapsed}s`;
+
+        if (!response.ok) {
+          output.textContent = "";
+          error.textContent =
+            result.error || `Request failed with status ${response.status}.`;
+          return;
+        }
+
+        output.textContent = result.output || "(No stdout output)";
+        error.textContent = result.error || "";
+
+        if (result.plot_base64) {
+          plot.src = `data:image/png;base64,${result.plot_base64}`;
+          plot.style.display = "block";
+          plotEmpty.style.display = "none";
+        }
+      } catch (err) {
+        runtime.textContent = "Failed";
+        output.textContent = "";
+        error.textContent =
+          "Could not connect to the Scilab server. Please try again.";
+        console.error(err);
+      } finally {
+        setRunning(false);
+      }
+    }
+
+    runBtn.addEventListener("click", runScilab);
+    updateEditorMeta();
+  </script>
+</body>
+</html>
