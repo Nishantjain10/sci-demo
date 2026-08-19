@@ -335,11 +335,9 @@ def _build_plot_wrapper(
 ) -> tuple[str, Path]:
     """Build the graphics-enabled Scilab script."""
 
-    plot_path = (
-        TMP_DIR / f"{execution_id}_plot.png"
-    )
+    plot_path = TMP_DIR / f"{execution_id}_plot.png"
 
-   wrapped_code = f"""
+    wrapped_code = f"""
 // Scilab Cloud background graphics execution
 
 __PLOT_FILE__ = "{plot_path.as_posix()}";
@@ -424,15 +422,7 @@ def _generate_plot(
             }
             return
 
-        if completed.returncode != 0:
-    plot_jobs[job_id] = {
-        "status": "failed",
-        "plot_base64": None,
-        "error": completed.stderr or (
-            "Scilab plot generation failed."
-        ),
-    }
-    return
+        if completed.returncode != 0 and not plot_path.is_file():
             plot_jobs[job_id] = {
                 "status": "failed",
                 "plot_base64": None,
