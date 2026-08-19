@@ -497,61 +497,116 @@ xtitle("Sine Wave", "x", "sin(x)");`;
     }
 
     async function runScilab() {
-      const source = code.value.trim();
+  const source = code.value.trim();
 
-      if (!source) {
-        error.textContent = "Please enter some Scilab code.";
+  if (!source) {
+    error.textContent = "Please enter some Scilab code.";
+    return;
+  }
+
+  setRunning(true);
+  output.textContent = "Executing...";
+  error.textContent = "";
+  runtime.textContent = "Running";
+  plot.style.display = "none";
+  plotEmpty.style.display = "block";
+  plotEmpty.textContent = "No plot generated yet.";
+
+  const started = performance.now();
+
+  try {
+    const response = await fetch("/execute", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ code: source })
+    });
+
+    const result = await response.json();
+
+    const elapsed =
+      ((performance.now() - started) / 1000).toFixed(2);
+
+    runtime.textContent = `${elapsed}s`;
+
+    if (!response.ok) {
+      output.textContent = "";
+      error.textContent =
+        result.error ||
+        `Request failed with status ${response.status}.`;
+      return;
+    }
+
+    // Show Scilab's text output immediately
+    output.textContent =
+      result.output || "(No stdout output)";
+
+    error.textContent = result.error || "";
+
+    // If this code generated a plot, start checking
+    // for the background plot.
+    if (result.plot_job_id) {
+      plotEmpty.textContent = "Generating plot...";
+
+      pollPlot(result.plot_job_id);
+    } else {
+      plotEmpty.textContent = "No plot generated.";
+    }
+
+  } catch (err) {
+    runtime.textContent = "Failed";
+    output.textContent = "";
+    error.textContent =
+      "Could not connect to the Scilab server. Please try again.";
+
+    console.error(err);
+
+  } finally {
+    setRunning(false);
+  }
+}
+    async function pollPlot(jobId) {
+  const maxAttempts = 60;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const response = await fetch(`/plot/${jobId}`);
+      const result = await response.json();
+
+      if (result.status === "complete") {
+        plot.src =
+          `data:image/png;base64,${result.plot_base64}`;
+
+        plot.style.display = "block";
+        plotEmpty.style.display = "none";
+
         return;
       }
 
-      setRunning(true);
-      output.textContent = "Executing...";
-      error.textContent = "";
-      runtime.textContent = "Running";
-      plot.style.display = "none";
-      plotEmpty.style.display = "block";
+      if (result.status === "failed") {
+        plotEmpty.textContent =
+          result.error || "Plot generation failed.";
 
-      const started = performance.now();
-
-      try {
-        const response = await fetch("/execute", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ code: source })
-        });
-
-        const result = await response.json();
-        const elapsed = ((performance.now() - started) / 1000).toFixed(2);
-
-        runtime.textContent = `${elapsed}s`;
-
-        if (!response.ok) {
-          output.textContent = "";
-          error.textContent =
-            result.error || `Request failed with status ${response.status}.`;
-          return;
-        }
-
-        output.textContent = result.output || "(No stdout output)";
-        error.textContent = result.error || "";
-
-        if (result.plot_base64) {
-          plot.src = `data:image/png;base64,${result.plot_base64}`;
-          plot.style.display = "block";
-          plotEmpty.style.display = "none";
-        }
-      } catch (err) {
-        runtime.textContent = "Failed";
-        output.textContent = "";
-        error.textContent =
-          "Could not connect to the Scilab server. Please try again.";
-        console.error(err);
-      } finally {
-        setRunning(false);
+        return;
       }
+
+      // queued / running
+      await new Promise(resolve =>
+        setTimeout(resolve, 1000)
+      );
+
+    } catch (err) {
+      console.error("Plot polling failed:", err);
+      plotEmpty.textContent =
+        "Could not retrieve the plot.";
+      return;
     }
+  }
+
+  plotEmpty.textContent =
+    "Plot generation is taking too long.";
+}
 
     runBtn.addEventListener("click", runScilab);
     updateEditorMeta();
