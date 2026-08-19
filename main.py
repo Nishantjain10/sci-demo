@@ -198,6 +198,10 @@ def _run_scilab(sce_path: Path) -> subprocess.CompletedProcess[str]:
     )
 
 
+@app.get("/")
+async def root():
+    return FileResponse("/app/index.html")
+
 @app.get("/health")
 async def health_check() -> dict[str, str]:
     return {"status": "ok"}
