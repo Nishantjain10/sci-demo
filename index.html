@@ -549,7 +549,7 @@ xtitle("Sine Wave", "x", "sin(x)");`;
     if (result.plot_job_id) {
       plotEmpty.textContent = "Generating plot...";
 
-      pollPlot(result.plot_job_id);
+      void pollPlot(result.plot_job_id);
     } else {
       plotEmpty.textContent = "No plot generated.";
     }
