@@ -2,17 +2,16 @@ FROM python:3.10-slim-bookworm
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    SCILAB_BINARY=scilab-adv-cli
+    SCILAB_BINARY=scilab-cli
 
 WORKDIR /app
 
-# scilab-cli: core CLI stack; scilab-full-bin: graphics/JOGL for headless plot export.
-# xvfb + X11/GL libs: virtual display so plot/plot2d do not fail without a real screen.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         scilab-cli \
         scilab-full-bin \
         xvfb \
+        xauth \
         libgl1-mesa-glx \
         libglu1-mesa \
         libxext6 \
